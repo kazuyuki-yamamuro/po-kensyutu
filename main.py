@@ -89,7 +89,8 @@ while True:
 
                     class_ids.append(class_id)
 
-                    x, y, w, h = row[0].item(), row[1].item(), row[2].item(), row[3].item() 
+                    x, y, w, h = row[0].item(), row[1].item(), row[2].item(), row[3].item()
+                    #　見やすいように少しだけ獲得座標をずらします
                     left = int((x - 0.5 * w) * x_factor)
                     top = int((y - 0.5 * h) * y_factor)
                     width = int(w * x_factor)
@@ -99,10 +100,9 @@ while True:
 
 
         # opencv-python==4.5.5.62じゃないとエラーになる
-        # 0.25が閾値でこの値より下の境界ボックスを削除する
-        # 0.3はSCORE_THRESHOLDでその値以下の自信を含んでいる任意のバウンディングボックスを排除します
-        # 除去されなかったのをindexesリストに入れる
-        indexes = cv2.dnn.NMSBoxes(boxes, confidences, 0.25, 0.3)
+        # boxes, confidencesをarray型からcv2で座標出力できる形に成形してindexesリストに入れる
+        # 0.25が閾値で0.4はSCORE_THRESHOLDです基本array型を作ったときと同じ値にします
+        indexes = cv2.dnn.NMSBoxes(boxes, confidences, 0.25, 0.4)
         
 
 
