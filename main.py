@@ -41,9 +41,9 @@ while True:
 
 
     # キャプチャーした画像にキー入力説明を入れてアプリの使い方を常に表示する
-    cv2.putText(frame, "C:camera" , (20, 200), 2, 1, (150, 150, 50), 2)
-    cv2.putText(frame, "D:detection", (20, 240), 2, 1, (150, 150, 50), 2)
-    cv2.putText(frame, "E:exit" , (20, 350), 2, 1, (150, 150, 50), 2)
+    cv2.putText(frame, "C:camera" , (20, 200), 2, 1, (20, 50, 30), 2)
+    cv2.putText(frame, "D:detection", (20, 240), 2, 1, (20, 50, 30), 2)
+    cv2.putText(frame, "E:exit" , (20, 340), 2, 1, (20, 50, 30), 2)
 
 
     cv2.imshow("camera", frame) # キャプチャーした画像を表示する
@@ -88,14 +88,14 @@ while True:
                 classes_scores = row[5:]
                 _, _, _, max_indx = cv2.minMaxLoc(classes_scores)
                 class_id = max_indx[1]
-                if (classes_scores[class_id] > .25): # .25が閾値でこの値より下の境界ボックスを削除する
+                if (classes_scores[class_id] > .4): # .4が閾値でこの値より下の境界ボックスを削除する
 
                     confidences.append(confidence)
 
                     class_ids.append(class_id)
 
                     x, y, w, h = row[0].item(), row[1].item(), row[2].item(), row[3].item()
-                    #　見やすいように少しだけ獲得座標をずらします
+                    #　バウンディングボックスが見やすいように少しだけ獲得座標をずらします
                     left = int((x - 0.5 * w) * x_factor)
                     top = int((y - 0.5 * h) * y_factor)
                     width = int(w * x_factor)
@@ -103,21 +103,15 @@ while True:
                     box = np.array([left, top, width, height])
                     boxes.append(box)
 
-        # printデバッグ用class_ids, confidences, boxes
-        print(f"class_ids:{class_ids}")
-        print(f"confidences:{confidences}")
-        print(f"boxes:{boxes}")
-
         
         #厳選するのが目的
         # confidencesのスコアとboxesの検出範囲から、スコアの最も良いものを軸にして検出範囲がダブっているものを排除したナンバーをindexesリストに入れる
-        # 0.25が閾値で0.4はSCORE_THRESHOLDです
-        indexes = cv2.dnn.NMSBoxes(boxes, confidences, 0.25, 0.4)
-        # opencv-python==4.5.5.62じゃないとエラーになる
+        # 第３引数の0.4が閾値で第4引数の0.4はSCORE_THRESHOLDです
+        indexes = cv2.dnn.NMSBoxes(boxes, confidences, 0.4, 0.4)
         
-        # printデバッグ用indexes
-        print(f"indexes:{indexes}")
         
+        
+
         # indexesリストに入っている厳選された番号を使って厳選されたバウンディングボックス位置座標をそのまま座標にcv2で四角を描写する
         [cv2.rectangle(frame, boxes[i], (0, 255, 25), 5) for i in indexes]
 
@@ -136,6 +130,21 @@ while True:
 
         cv2.imwrite(path, frame) # pathの階層にa.pngという名前で画像を保存する
         cv2.imshow(path, frame) # 保存した画像を表示する
+
+        print("------------------変数デバッグ開始--------------------")
+        # printデバッグ用class_ids, confidences, boxes
+        print(f"class_ids:{class_ids}")
+        print(f"class_id変数は検出された全てのクラスを格納するリストです今回はporousを検出する0というクラスだけしかない")
+        print(f"confidences:{confidences}")
+        print(f"confidences変数は検出された全ての検出精度を格納するリスト")
+        print(f"boxes:{boxes}")
+        print(f"boxes変数は検出された全てのバウンディングボックス座標を格納するリスト")
+        # printデバッグ用indexes
+        print(f"indexes:{indexes}")
+        print(f"indexesはconfidencesのスコアとboxesの検出範囲から、スコアの最も良いものを軸にして検出範囲がダブっているものを排除したナンバーの入ったリスト")
+        print(f"indexesの数:{len(indexes)}")
+        print("------------------変数デバッグ終了--------------------")
+
         
         
         
