@@ -66,7 +66,6 @@ while True:
 
         
 
-        class_ids = [] # 検出された全てのクラスを格納するリスト & 初期化　今回はporousを検出する0というクラスだけしかない
         confidences = [] # 検出された全ての検出精度を格納するリスト作成 & 初期化
         boxes = [] # 検出された全てのバウンディングボックス座標を格納するリスト作成 & 初期化
 
@@ -89,11 +88,9 @@ while True:
                 _, _, _, max_indx = cv2.minMaxLoc(classes_scores)
                 class_id = max_indx[1]
                 if (classes_scores[class_id] > .4): # .4が閾値でこの値より下の境界ボックスを削除する
-
+                    # 精度リスト追加
                     confidences.append(confidence)
-
-                    class_ids.append(class_id)
-
+                    # バウンディングボックス座標作成
                     x, y, w, h = row[0].item(), row[1].item(), row[2].item(), row[3].item()
                     #　バウンディングボックスが見やすいように少しだけ獲得座標をずらします
                     left = int((x - 0.5 * w) * x_factor)
@@ -132,17 +129,18 @@ while True:
         cv2.imshow(path, frame) # 保存した画像を表示する
 
         print("------------------変数デバッグ開始--------------------")
-        # printデバッグ用class_ids, confidences, boxes
-        print(f"class_ids:{class_ids}")
-        print(f"class_id変数は検出された全てのクラスを格納するリストです今回はporousを検出する0というクラスだけしかない")
+        # printデバッグ用confidences, boxes
+        print(f"厳選前の検出数{len(confidences)}")
         print(f"confidences:{confidences}")
         print(f"confidences変数は検出された全ての検出精度を格納するリスト")
+        print()
         print(f"boxes:{boxes}")
         print(f"boxes変数は検出された全てのバウンディングボックス座標を格納するリスト")
+        print()
         # printデバッグ用indexes
         print(f"indexes:{indexes}")
         print(f"indexesはconfidencesのスコアとboxesの検出範囲から、スコアの最も良いものを軸にして検出範囲がダブっているものを排除したナンバーの入ったリスト")
-        print(f"indexesの数:{len(indexes)}")
+        print(f"厳選後の検出数:{len(indexes)}")
         print("------------------変数デバッグ終了--------------------")
 
         
