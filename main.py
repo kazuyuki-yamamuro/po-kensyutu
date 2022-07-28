@@ -54,28 +54,33 @@ while True:
         
 
         # キャプチャーした画像をyolov5で作られたONNXファイルで検出できるように加工
-        # yolov5から作ったONNXファイルの特性上検出に使えるのは640✖️640pxの画像になるので変換
+        # yolov5から作ったONNXファイルの性質上検出に使えるのは640✖️640pxの画像になるので変換
         # 1/255の倍率を使用して、画像のピクセル値を0から1のターゲット範囲にスケーリングします
         # 加工後の画像で予測行う
-        input_image = format_yolov5(frame) # making the image square
+        input_image = format_yolov5(frame)
         blob = cv2.dnn.blobFromImage(input_image , 1/255.0, (640, 640), swapRB=True)
         net.setInput(blob)
         predictions = net.forward()
 
 
 
+        
+
+        class_ids = [] # 検出された全てのクラスを格納するリスト & 初期化　今回はporousを検出する0というクラスだけしかない
+        confidences = [] # 検出された全ての検出精度を格納するリスト作成 & 初期化
+        boxes = [] # 検出された全てのバウンディングボックス座標を格納するリスト作成 & 初期化
+
         # 予測をアンラップしてオブジェクトの検出を取得します
         # yolov5で作られたAIは640✖️640の画像内に25200のバウンディングボックスが存在するので全部検出をループします。
         # 良好な検出を除外します
         # 最高のクラススコアのインデックスを取得します。
         # クラススコアがしきい値より低い検出は破棄します。
-        class_ids = []
-        confidences = []
-        boxes = []
         output_data = predictions[0]
         image_width, image_height, _ = input_image.shape
         x_factor = image_width / 640 
         y_factor =  image_height / 640
+
+    
         for r in range(25200):
             row = output_data[r]
             confidence = row[4]
@@ -98,25 +103,24 @@ while True:
                     box = np.array([left, top, width, height])
                     boxes.append(box)
 
+        # printデバッグ用class_ids, confidences, boxes
+        print(f"class_ids:{class_ids}")
+        print(f"confidences:{confidences}")
+        print(f"boxes:{boxes}")
 
-        # opencv-python==4.5.5.62じゃないとエラーになる
-        # boxes, confidencesをarray型からcv2で座標出力できる形に成形してindexesリストに入れる
-        # 0.25が閾値で0.4はSCORE_THRESHOLDです基本array型を作ったときと同じ値にします
+        
+        #厳選するのが目的
+        # confidencesのスコアとboxesの検出範囲から、スコアの最も良いものを軸にして検出範囲がダブっているものを排除したナンバーをindexesリストに入れる
+        # 0.25が閾値で0.4はSCORE_THRESHOLDです
         indexes = cv2.dnn.NMSBoxes(boxes, confidences, 0.25, 0.4)
+        # opencv-python==4.5.5.62じゃないとエラーになる
         
+        # printデバッグ用indexes
+        print(f"indexes:{indexes}")
+        
+        # indexesリストに入っている厳選された番号を使って厳選されたバウンディングボックス位置座標をそのまま座標にcv2で四角を描写する
+        [cv2.rectangle(frame, boxes[i], (0, 255, 25), 5) for i in indexes]
 
-
-        
-        
-        result_class_ids = [] # 検出番号を格納するリストを作成&初期化
-        result_boxes = [] # ボックス位置座標を格納するリストを作成&初期化
-
-        # 篩にかけてindexesリストになったデータを使ってループし閾値以上かつ重複対策後の検出番号とボックス位置座標をリストに入れる
-        [[result_class_ids.append(class_ids[i]),result_boxes.append(boxes[i])] for i in indexes]
-        
-        # ボックス位置座標を検出番号に対してlenを使って検出数とする。検出数分ループすることで検出された座標を獲得しそのまま座標にcv2で四角を描写する
-        [cv2.rectangle(frame, result_boxes[i], (0, 255, 25), 5) for i in range(len(result_class_ids))]
-        
 
 
         
@@ -128,7 +132,7 @@ while True:
         cv2.putText(frame, f"{date}" , (20, 80), 0, 1, (255, 0, 255), 3)
 
         # 物体検出した数を画像に書き込む
-        cv2.putText(frame, f"Porous {len(result_class_ids)}" , (20, 160), 0, 2.5, (255, 0, 255), 3)
+        cv2.putText(frame, f"Porous {len(indexes)}" , (20, 160), 0, 2.5, (255, 0, 255), 3)
 
         cv2.imwrite(path, frame) # pathの階層にa.pngという名前で画像を保存する
         cv2.imshow(path, frame) # 保存した画像を表示する
