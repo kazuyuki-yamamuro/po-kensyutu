@@ -87,7 +87,7 @@ while True:
                 classes_scores = row[5:]
                 _, _, _, max_indx = cv2.minMaxLoc(classes_scores)
                 class_id = max_indx[1]
-                if (classes_scores[class_id] > .4): # .4が閾値でこの値より下の境界ボックスを削除する
+                if (classes_scores[class_id] > .25): # .25が閾値でこの値より下の境界ボックスを削除する
                     # 精度リスト追加
                     confidences.append(confidence)
                     # バウンディングボックス座標作成
@@ -102,9 +102,9 @@ while True:
 
         
         #厳選するのが目的
-        # confidencesのスコアとboxesの検出範囲から、スコアの最も良いものを軸にして検出範囲がダブっているものを排除したナンバーをindexesリストに入れる
-        # 第３引数の0.4が閾値で第4引数の0.4はSCORE_THRESHOLDです
-        indexes = cv2.dnn.NMSBoxes(boxes, confidences, 0.4, 0.4)
+        # confidencesのスコアとboxesの検出範囲から、スコアの良いものを軸にして検出範囲がダブっているものを排除したナンバーをindexesリストに入れる
+        # 第３引数の0.25が閾値で第4引数の0.4はSCORE_THRESHOLDです
+        indexes = cv2.dnn.NMSBoxes(boxes, confidences, 0.25, 0.4)
         
         
         
@@ -130,7 +130,7 @@ while True:
 
         print("------------------変数デバッグ開始--------------------")
         # printデバッグ用confidences, boxes
-        print(f"厳選前の検出数{len(confidences)}")
+        print(f"厳選前の検出数:{len(confidences)}")
         print(f"confidences:{confidences}")
         print(f"confidences変数は検出された全ての検出精度を格納するリスト")
         print()
@@ -138,9 +138,14 @@ while True:
         print(f"boxes変数は検出された全てのバウンディングボックス座標を格納するリスト")
         print()
         # printデバッグ用indexes
-        print(f"indexes:{indexes}")
-        print(f"indexesはconfidencesのスコアとboxesの検出範囲から、スコアの最も良いものを軸にして検出範囲がダブっているものを排除したナンバーの入ったリスト")
         print(f"厳選後の検出数:{len(indexes)}")
+        print(f"indexes:{indexes}")
+        print(f"indexesはconfidencesのスコアとboxesの検出範囲から、スコアの良いものを軸にして検出範囲がダブっているものを排除したナンバーの入ったリスト")
+        print()
+        print(f"厳選後の座標")
+        [print(boxes[i]) for i in indexes]
+        print(f"厳選後の精度")
+        [print(confidences[i]) for i in indexes]
         print("------------------変数デバッグ終了--------------------")
 
         
