@@ -14,11 +14,15 @@ user = getpass.getuser()
 # 任意のカメラ番号を指定してビデオキャプチャーを変数化
 cap = cv2.VideoCapture(0)
 
+
+'''windowsとmacでパスが変わります'''
 # フォルダに絶対パスを通してonnxファイルを読み込む
-net = cv2.dnn.readNet(f'/Users/{user}/Desktop/porous/text/best1.onnx')
+net = cv2.dnn.readNet(f'/Users/{user}/Desktop/porous/text/best1.onnx') # macの場合のパス
+# net = cv2.dnn.readNet(f'C:\\Users\\{user}\\Desktop\\po-kensyutu-master\\text\\best1.onnx') # windowsの場合のパス
 
 # フォルダに絶対パスを通して検出画像を一時的に保存するのに使う
-path = f"/Users/{user}/Desktop/porous/text/a.png"
+path = f"/Users/{user}/Desktop/porous/text/a.png" #macの場合のパス
+# path = f'C:\\Users\\{user}\\Desktop\\po-kensyutu-master\\text\\a.png' # windowsの場合のパス
 
 # 読み込んだ画像を正方形にする関数を用意しておきます
 def format_yolov5(frame):
@@ -39,14 +43,17 @@ while True:
     
     frame = cv2.flip(frame, -1) # 取得した画像の上下をひっくり返すことで人が見ている景色とPC画面を同じにする
 
-
+    # 文字を書き込んだ後で物体検出をすると文字を勘違いして数えてしまう危険性がある
+    # 常に表示する画像とCを押した場合はにはキー入力説明を書き込んだframe2を表示します
+    # Dボタンを押した場合は無字のframeを読み込んだ後で物体検出を行い最後にキー入力説明を書き込みます
+    frame2 = frame.copy()
     # キャプチャーした画像にキー入力説明を入れてアプリの使い方を常に表示する
-    cv2.putText(frame, "C:camera" , (20, 200), 2, 1, (20, 50, 30), 2)
-    cv2.putText(frame, "D:detection", (20, 240), 2, 1, (20, 50, 30), 2)
-    cv2.putText(frame, "E:exit" , (20, 340), 2, 1, (20, 50, 30), 2)
+    cv2.putText(frame2, "C:camera" , (20, 200), 2, 1, (20, 50, 30), 2)
+    cv2.putText(frame2, "D:detection", (20, 240), 2, 1, (20, 50, 30), 2)
+    cv2.putText(frame2, "E:exit" , (20, 340), 2, 1, (20, 50, 30), 2)
 
 
-    cv2.imshow("camera", frame) # キャプチャーした画像を表示する
+    cv2.imshow("camera", frame2) # キャプチャーした画像を表示する
     
     k = cv2.waitKey(10)&0xff # キー入力を待つ入力によって処理を分岐する
 
@@ -125,6 +132,11 @@ while True:
         # 物体検出した数を画像に書き込む
         cv2.putText(frame, f"Porous {len(indexes)}" , (20, 160), 0, 2.5, (255, 0, 255), 3)
 
+        # キャプチャーした画像に物体検出後、キー入力説明を入れてアプリの使い方を常に表示する
+        cv2.putText(frame, "C:camera" , (20, 200), 2, 1, (20, 50, 30), 2)
+        cv2.putText(frame, "D:detection", (20, 240), 2, 1, (20, 50, 30), 2)
+        cv2.putText(frame, "E:exit" , (20, 340), 2, 1, (20, 50, 30), 2)
+
         cv2.imwrite(path, frame) # pathの階層にa.pngという名前で画像を保存する
         cv2.imshow(path, frame) # 保存した画像を表示する
 
@@ -156,7 +168,7 @@ while True:
 
 
     elif k == ord('c'): # 「c」キーが押されたらキャプチャした画像を表示する
-        cv2.imshow(path, frame) 
+        cv2.imshow(path, frame2) 
   
         
     elif k == ord('e'):# 「e」キーが押されたら終了する
