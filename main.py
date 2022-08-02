@@ -17,12 +17,12 @@ cap = cv2.VideoCapture(0)
 
 '''windowsとmacでパスが変わります'''
 # フォルダに絶対パスを通してonnxファイルを読み込む
-net = cv2.dnn.readNet(f'/Users/{user}/Desktop/porous/text/best1.onnx') # macの場合のパス
-# net = cv2.dnn.readNet(f'C:\\Users\\{user}\\Desktop\\po-kensyutu-master\\text\\best1.onnx') # windowsの場合のパス
+# net = cv2.dnn.readNet(f'/Users/{user}/Desktop/po-kensyutu-master/text/best1.onnx') # macの場合のパス
+net = cv2.dnn.readNet(f'C:\\Users\\{user}\\Desktop\\po-kensyutu-master\\text\\best1.onnx') # windowsの場合のパス
 
 # フォルダに絶対パスを通して検出画像を一時的に保存するのに使う
-path = f"/Users/{user}/Desktop/porous/text/a.png" #macの場合のパス
-# path = f'C:\\Users\\{user}\\Desktop\\po-kensyutu-master\\text\\a.png' # windowsの場合のパス
+# path = f"/Users/{user}/Desktop/po-kensyutu-master/text/a.png" #macの場合のパス
+path = f'C:\\Users\\{user}\\Desktop\\po-kensyutu-master\\text\\a.png' # windowsの場合のパス
 
 # 読み込んだ画像を正方形にする関数を用意しておきます
 def format_yolov5(frame):
@@ -90,11 +90,11 @@ while True:
         for r in range(25200):
             row = output_data[r]
             confidence = row[4]
-            if confidence >= 0.4: # 0.4はSCORE_THRESHOLDでその値以下の自信を含んでいる任意のバウンディングボックスを排除します
+            if confidence >= 0.4: # 0.4以上の精度以上のものを取得
                 classes_scores = row[5:]
                 _, _, _, max_indx = cv2.minMaxLoc(classes_scores)
                 class_id = max_indx[1]
-                if (classes_scores[class_id] > .25): # .25が閾値でこの値より下の境界ボックスを削除する
+                if (classes_scores[class_id] > .4): # .4がSCORE_THRESHOLDでこの値より下の境界ボックスを削除する
                     # 精度リスト追加
                     confidences.append(confidence)
                     # バウンディングボックス座標作成
@@ -110,8 +110,8 @@ while True:
         
         #厳選するのが目的
         # confidencesのスコアとboxesの検出範囲から、スコアの良いものを軸にして検出範囲がダブっているものを排除したナンバーをindexesリストに入れる
-        # 第３引数の0.25が閾値で第4引数の0.4はSCORE_THRESHOLDです
-        indexes = cv2.dnn.NMSBoxes(boxes, confidences, 0.25, 0.4)
+        # 第３引数の0.4が閾値で第4引数の0.4はSCORE_THRESHOLDです
+        indexes = cv2.dnn.NMSBoxes(boxes, confidences, 0.4, 0.4)
         
         
         
