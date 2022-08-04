@@ -16,8 +16,8 @@ cap = cv2.VideoCapture(0)
 # cap = cv2.VideoCapture(1)
 
 
-THRESHOLD = 3.8 # 閾値設定
-SCORE_THRESHOLD = 4.0 # 重複ボックス除去用SCORE_THRESHOLD設定
+THRESHOLD = 0.38 # 閾値設定
+SCORE_THRESHOLD = 0.40 # 重複ボックス除去用SCORE_THRESHOLD設定
 
 
 '''windowsとmacでパスが変わります'''
