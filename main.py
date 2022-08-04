@@ -13,6 +13,11 @@ user = getpass.getuser()
 
 # 任意のカメラ番号を指定してビデオキャプチャーを変数化
 cap = cv2.VideoCapture(0)
+# cap = cv2.VideoCapture(1)
+
+
+THRESHOLD = 3.8 # 閾値設定
+SCORE_THRESHOLD = 4.0 # 重複ボックス除去用SCORE_THRESHOLD設定
 
 
 '''windowsとmacでパスが変わります'''
@@ -47,11 +52,18 @@ while True:
     # 常に表示する画像とCを押した場合はにはキー入力説明を書き込んだframe2を表示します
     # Dボタンを押した場合は無字のframeを読み込んだ後で物体検出を行い最後にキー入力説明を書き込みます
     frame2 = frame.copy()
-    # キャプチャーした画像にキー入力説明を入れてアプリの使い方を常に表示する
-    cv2.putText(frame2, "C:camera" , (20, 200), 2, 1, (20, 50, 30), 2)
-    cv2.putText(frame2, "D:detection", (20, 240), 2, 1, (20, 50, 30), 2)
-    cv2.putText(frame2, "E:exit" , (20, 340), 2, 1, (20, 50, 30), 2)
 
+
+    # キャプチャーした画像にキー入力説明を入れてアプリの使い方を常に表示する
+    # '''macの場合'''
+    # cv2.putText(frame2, "C:camera" , (20, 200), 2, 1, (20, 50, 30), 2)
+    # cv2.putText(frame2, "D:detection", (20, 240), 2, 1, (20, 50, 30), 2)
+    # cv2.putText(frame2, "E:exit" , (20, 340), 2, 1, (20, 50, 30), 2)
+
+    '''windowsの場合'''
+    cv2.putText(frame2, "C:camera" , (10, 150), 0, 0.5, (20, 50, 30), 2)
+    cv2.putText(frame2, "D:detection", (10, 180), 0, 0.5, (20, 50, 30), 2)
+    cv2.putText(frame2, "E:exit" , (10, 210), 0, 0.5, (20, 50, 30), 2)
 
     cv2.imshow("camera", frame2) # キャプチャーした画像を表示する
     
@@ -90,11 +102,11 @@ while True:
         for r in range(25200):
             row = output_data[r]
             confidence = row[4]
-            if confidence >= 0.4: # 0.4以上の精度以上のものを取得
+            if confidence >= THRESHOLD: # 閾値以上の精度以上のものを取得
                 classes_scores = row[5:]
                 _, _, _, max_indx = cv2.minMaxLoc(classes_scores)
                 class_id = max_indx[1]
-                if (classes_scores[class_id] > .4): # .4がSCORE_THRESHOLDでこの値より下の境界ボックスを削除する
+                if (classes_scores[class_id] > SCORE_THRESHOLD): # がSCORE_THRESHOLDの値より下の境界ボックスを削除する
                     # 精度リスト追加
                     confidences.append(confidence)
                     # バウンディングボックス座標作成
@@ -108,11 +120,13 @@ while True:
                     boxes.append(box)
 
         
+        
+
         #厳選するのが目的
         # confidencesのスコアとboxesの検出範囲から、スコアの良いものを軸にして検出範囲がダブっているものを排除したナンバーをindexesリストに入れる
-        # 第３引数の0.4が閾値で第4引数の0.4はSCORE_THRESHOLDです
-        indexes = cv2.dnn.NMSBoxes(boxes, confidences, 0.4, 0.4)
-        
+        # 第３引数が閾値で第4引数はSCORE_THRESHOLDです
+        indexes = cv2.dnn.NMSBoxes(boxes, confidences, THRESHOLD, SCORE_THRESHOLD)
+          
         
         
 
@@ -127,20 +141,34 @@ while True:
         date = datetime.now().strftime("%Y/%m/%d %H:%M:%S")
 
         # date変数にいれた時間文字列を画像に書き込む
-        cv2.putText(frame, f"{date}" , (20, 80), 0, 1, (255, 0, 255), 3)
+        # cv2.putText(frame, f"{date}" , (20, 80), 0, 1, (255, 0, 255), 3) # mac用
+        cv2.putText(frame, f"{date}" , (10, 30), 0, 0.475, (255, 0, 255), 2) # windows用
 
         # 物体検出した数を画像に書き込む
-        cv2.putText(frame, f"Porous {len(indexes)}" , (20, 160), 0, 2.5, (255, 0, 255), 3)
+        # cv2.putText(frame, f"Porous {len(indexes)}" , (20, 160), 0, 2.5, (255, 0, 255), 3) # mac用
+        cv2.putText(frame, f"Porous {len(indexes)}" , (10, 70), 2, 0.65, (255, 0, 255), 2) # windows用
 
         # キャプチャーした画像に物体検出後、キー入力説明を入れてアプリの使い方を常に表示する
-        cv2.putText(frame, "C:camera" , (20, 200), 2, 1, (20, 50, 30), 2)
-        cv2.putText(frame, "D:detection", (20, 240), 2, 1, (20, 50, 30), 2)
-        cv2.putText(frame, "E:exit" , (20, 340), 2, 1, (20, 50, 30), 2)
+        # '''mac用'''
+        # cv2.putText(frame, "C:camera" , (20, 200), 2, 1, (20, 50, 30), 2)
+        # cv2.putText(frame, "D:detection", (20, 240), 2, 1, (20, 50, 30), 2)
+        # cv2.putText(frame, "E:exit" , (20, 340), 2, 1, (20, 50, 30), 2)
 
-        cv2.imwrite(path, frame) # pathの階層にa.pngという名前で画像を保存する
-        cv2.imshow(path, frame) # 保存した画像を表示する
+
+        '''windows用'''
+        cv2.putText(frame, "C:camera" , (10, 150), 0, 0.5, (20, 50, 30), 2)
+        cv2.putText(frame, "D:detection", (10, 180), 0, 0.5, (20, 50, 30), 2)
+        cv2.putText(frame, "E:exit" , (10, 210), 0, 0.5, (20, 50, 30), 2)
+
+        dst = cv2.resize(frame, dsize=(800, 600)) # 画像サイズを変更
+        cv2.imwrite(path, dst) # pathの階層にa.pngという名前で画像を保存する
+        cv2.imshow(path, dst) # 保存した画像を表示する
 
         print("------------------変数デバッグ開始--------------------")
+        # printデバッグ用THRESHOLDとSCORE_THRESHOLD
+        print(f"閾値:{THRESHOLD}")
+        print(f"SCORE_THRESHOLD:{SCORE_THRESHOLD}")
+        print()
         # printデバッグ用confidences, boxes
         print(f"厳選前の検出数:{len(confidences)}")
         print(f"confidences:{confidences}")
