@@ -1,4 +1,5 @@
 # 必要モジュールをインポートします
+from time import time
 import cv2
 from datetime import datetime
 import numpy as np
@@ -44,6 +45,24 @@ def format_yolov5(frame):
 # 以下のwhile文をループ中に処理した画像を見ることがこのアプリケーションの活用方法になります
 
 while True:
+
+
+
+
+    time_start = time.time()  #検出プログラム開始の時間を取得
+
+
+
+
+
+    time_gool = time.time()  #検出プログラム終了の時間を取得
+
+    total_time = time_gool - time_start # 検出プログラムを動かすのに必要な時間
+    print(f"検出プログラムを動かすのに必要な時間：{total_time}")
+
+
+
+    
     ret, frame = cap.read() # カメラから画像を取得する
     
     frame = cv2.flip(frame, -1) # 取得した画像の上下をひっくり返すことで人が見ている景色とPC画面を同じにする
